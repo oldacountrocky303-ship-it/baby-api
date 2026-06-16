@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "functions": {
+    "api/**/*.js": {
+      "memory": 128,
+      "maxDuration": 10
+    }
+  },
+  "routes": [
+    { "src": "/api/hinata", "dest": "/api/hinata.js" },
+    { "src": "/api/jan/teach", "dest": "/api/jan/teach.js" },
+    { "src": "/api/jan/remove", "dest": "/api/jan/remove.js" },
+    { "src": "/api/jan/list/all", "dest": "/api/jan/list.js" },
+    { "src": "/api/jan/list", "dest": "/api/jan/list.js" },
+    { "src": "/api/jan/edit", "dest": "/api/jan/edit.js" },
+    { "src": "/api/jan/msg", "dest": "/api/jan/msg.js" }
+  ]
+}
