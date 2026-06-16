@@ -1,5 +1,5 @@
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const GITHUB_REPO = process.env.GITHUB_REPO || "rocky-chowdhury-api/baby-api";
+const GITHUB_REPO = "oldacountrocky303-ship-it/baby-api";
 
 module.exports = async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -13,15 +13,14 @@ module.exports = async (req, res) => {
 
   try {
     const { default: fetch } = await import('node-fetch');
-    const r = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/data/responses.json`, {
-      headers: { Authorization: `token ${GITHUB_TOKEN}` }
-    });
+    const r = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/contents/data/responses.json`,
+      { headers: { Authorization: `token ${GITHUB_TOKEN}` } }
+    );
     const d = await r.json();
     const data = JSON.parse(Buffer.from(d.content, 'base64').toString('utf8'));
     const keys = Object.keys(data).filter(k => k.includes(search));
-
-    if (!keys.length) return res.status(200).json({ message: `❌ "${search}" not found in database` });
-
+    if (!keys.length) return res.status(200).json({ message: `❌ "${search}" not found` });
     let msg = `🔍 Found ${keys.length} result(s) for "${search}":\n\n`;
     keys.slice(0, 10).forEach((k, i) => {
       msg += `${i + 1}. "${k}":\n   ${data[k].slice(0, 3).join(", ")}\n`;
