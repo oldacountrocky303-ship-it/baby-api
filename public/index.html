@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Baby API — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0b0b12;
+    --surface: #13131f;
+    --card: #1a1a2e;
+    --border: #2a2a45;
+    --accent: #b06ef3;
+    --accent2: #f36eb0;
+    --accent3: #6eb0f3;
+    --text: #e8e8f4;
+    --muted: #7070a0;
+    --success: #4ade80;
+    --error: #f87171;
+    --radius: 14px;
+    --font: 'Space Grotesk', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ── */
+  header {
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--surface);
+  }
+  .logo {
+    width: 42px; height: 42px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+  header span { font-size: 13px; color: var(--muted); font-weight: 400; }
+  .status-dot {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--muted);
+  }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 8px var(--success);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+  /* ── Layout ── */
+  .layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── Sidebar ── */
+  nav {
+    width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  nav button {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: left;
+    display: flex; align-items: center; gap: 10px;
+    transition: all .18s;
+  }
+  nav button:hover { background: var(--card); color: var(--text); }
+  nav button.active { background: linear-gradient(135deg,rgba(176,110,243,.18),rgba(243,110,176,.10)); color: var(--text); border: 1px solid rgba(176,110,243,.3); }
+  nav .icon { font-size: 17px; width: 22px; text-align: center; }
+  nav .divider { height: 1px; background: var(--border); margin: 10px 4px; }
+
+  /* ── Main ── */
+  main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .panel { display: none; }
+  .panel.active { display: flex; flex-direction: column; gap: 20px; }
+
+  .panel-title {
+    font-size: 22px; font-weight: 700; letter-spacing: -0.4px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .panel-title .badge {
+    font-size: 12px; font-weight: 500;
+    padding: 3px 10px; border-radius: 20px;
+    background: rgba(176,110,243,.15);
+    color: var(--accent);
+    border: 1px solid rgba(176,110,243,.25);
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+  }
+  .card-label {
+    font-size: 12px; font-weight: 600; letter-spacing: .8px;
+    text-transform: uppercase; color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  /* ── Chat ── */
+  .chat-messages {
+    height: 380px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 4px 0;
+    scroll-behavior: smooth;
+  }
+  .chat-messages::-webkit-scrollbar { width: 4px; }
+  .chat-messages::-webkit-scrollbar-track { background: transparent; }
+  .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .msg {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    animation: fadeUp .2s ease;
+  }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+  .msg.user { flex-direction: row-reverse; }
+
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .msg.bot .avatar { background: linear-gradient(135deg, var(--accent), var(--accent2)); }
+  .msg.user .avatar { background: linear-gradient(135deg, var(--accent3), var(--accent)); }
+
+  .bubble {
+    max-width: 72%;
+    padding: 11px 15px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .msg.bot .bubble {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top-left-radius: 4px;
+  }
+  .msg.user .bubble {
+    background: linear-gradient(135deg, rgba(176,110,243,.25), rgba(243,110,176,.15));
+    border: 1px solid rgba(176,110,243,.3);
+    border-top-right-radius: 4px;
+  }
+  .msg-time { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  .chat-input-row {
+    display: flex; gap: 10px; margin-top: 16px;
+  }
+
+  /* ── Inputs ── */
+  input[type=text], textarea {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    padding: 12px 16px;
+    outline: none;
+    transition: border-color .2s;
+    width: 100%;
+  }
+  input[type=text]:focus, textarea:focus { border-color: var(--accent); }
+  textarea { resize: vertical; min-height: 80px; }
+
+  /* ── Buttons ── */
+  .btn {
+    border: none;
+    border-radius: 10px;
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 12px 20px;
+    transition: all .18s;
+    display: flex; align-items: center; gap: 7px;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+  }
+  .btn-primary:hover { opacity: .88; transform: translateY(-1px); }
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-danger {
+    background: rgba(248,113,113,.1);
+    color: var(--error);
+    border: 1px solid rgba(248,113,113,.25);
+  }
+  .btn-danger:hover { background: rgba(248,113,113,.2); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; transform: none !important; }
+
+  /* ── Form rows ── */
+  .form-row { display: flex; flex-direction: column; gap: 8px; }
+  .form-label { font-size: 13px; font-weight: 500; color: var(--muted); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-actions { display: flex; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed; bottom: 28px; right: 28px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-size: 14px;
+    display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.5);
+    transform: translateY(80px); opacity: 0;
+    transition: all .3s cubic-bezier(.34,1.56,.64,1);
+    z-index: 999;
+    max-width: 340px;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.success { border-color: rgba(74,222,128,.35); }
+  #toast.error { border-color: rgba(248,113,113,.35); }
+
+  /* ── List ── */
+  .list-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    animation: fadeUp .2s ease;
+  }
+  .list-item:hover { border-color: var(--accent); }
+  .list-trigger { font-weight: 600; font-size: 14px; }
+  .list-count {
+    font-size: 12px; color: var(--muted);
+    font-family: var(--mono);
+  }
+  .list-container { display: flex; flex-direction: column; gap: 8px; }
+
+  /* ── Stats row ── */
+  .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+  }
+  .stat-num { font-size: 32px; font-weight: 700; background: linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .stat-label { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  /* ── Spinner ── */
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,.15);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    display: inline-block;
+  }
+  @keyframes spin { to{transform:rotate(360deg)} }
+
+  /* ── Scrollbar global ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* ── Responsive ── */
+  @media(max-width:720px){
+    .layout { flex-direction: column; }
+    nav { width: 100%; flex-direction: row; overflow-x: auto; padding: 10px; border-right: none; border-bottom: 1px solid var(--border); gap: 4px; }
+    nav button { flex-direction: column; gap: 3px; padding: 8px 10px; font-size: 11px; }
+    nav .icon { width: auto; }
+    nav .divider { display: none; }
+    main { padding: 16px; }
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🌸</div>
+  <div>
+    <h1>Baby API</h1>
+    <span>by Rocky</span>
+  </div>
+  <div class="status-dot">
+    <div class="dot" id="statusDot"></div>
+    <span id="statusText">Connecting…</span>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <nav>
+    <button class="active" onclick="switchPanel('chat', this)"><span class="icon">💬</span> Chat</button>
+    <button onclick="switchPanel('teach', this)"><span class="icon">📚</span> Teach</button>
+    <button onclick="switchPanel('edit', this)"><span class="icon">✏️</span> Edit</button>
+    <button onclick="switchPanel('remove', this)"><span class="icon">🗑️</span> Remove</button>
+    <div class="divider"></div>
+    <button onclick="switchPanel('list', this)"><span class="icon">📋</span> List</button>
+    <button onclick="switchPanel('search', this)"><span class="icon">🔍</span> Search</button>
+    <div class="divider"></div>
+    <button onclick="switchPanel('leaderboard', this)"><span class="icon">👑</span> Teachers</button>
+  </nav>
+
+  <!-- Main -->
+  <main>
+
+    <!-- ── CHAT ── -->
+    <div id="panel-chat" class="panel active">
+      <div class="panel-title">💬 Chat with Baby <span class="badge">Live</span></div>
+      <div class="card">
+        <div class="chat-messages" id="chatMessages">
+          <div class="msg bot">
+            <div class="avatar">🌸</div>
+            <div>
+              <div class="bubble">Assalamualaikum! Bolo ki bolba? 😊</div>
+              <div class="msg-time">Just now</div>
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-row">
+          <input type="text" id="chatInput" placeholder="Type your message…" onkeydown="if(event.key==='Enter') sendChat()" />
+          <button class="btn btn-primary" onclick="sendChat()" id="chatBtn">
+            <span>Send</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TEACH ── -->
+    <div id="panel-teach" class="panel">
+      <div class="panel-title">📚 Teach Baby</div>
+      <div class="card">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:18px;">Teach Baby a new trigger word and its replies. Multiple replies can be added with commas.</p>
+        <div class="form-grid">
+          <div class="form-row">
+            <div class="form-label">Trigger / Question</div>
+            <input type="text" id="teachTrigger" placeholder="e.g. hello, kemon acho" />
+          </div>
+          <div class="form-row">
+            <div class="form-label">Responses (comma separated)</div>
+            <input type="text" id="teachResponses" placeholder="e.g. Hi!, Valo achi, Good morning" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="teachBot()">📚 Add Teaching</button>
+          <button class="btn btn-secondary" onclick="clearFields('teach')">Clear</button>
+        </div>
+      </div>
+      <div class="card" id="teachResult" style="display:none">
+        <div class="card-label">Result</div>
+        <div id="teachResultText" style="font-size:14px;line-height:1.7"></div>
+      </div>
+    </div>
+
+    <!-- ── EDIT ── -->
+    <div id="panel-edit" class="panel">
+      <div class="panel-title">✏️ Edit Trigger</div>
+      <div class="card">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:18px;">Change what Baby says for an existing trigger.</p>
+        <div class="form-grid">
+          <div class="form-row">
+            <div class="form-label">Existing Trigger</div>
+            <input type="text" id="editOld" placeholder="e.g. hello" />
+          </div>
+          <div class="form-row">
+            <div class="form-label">New Response</div>
+            <input type="text" id="editNew" placeholder="e.g. Hey there!, Hii!!" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="editBot()">✏️ Save Edit</button>
+          <button class="btn btn-secondary" onclick="clearFields('edit')">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── REMOVE ── -->
+    <div id="panel-remove" class="panel">
+      <div class="panel-title">🗑️ Remove Response</div>
+      <div class="card">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:18px;">Remove a specific response by its index number from a trigger.</p>
+        <div class="form-grid">
+          <div class="form-row">
+            <div class="form-label">Trigger</div>
+            <input type="text" id="removeTrigger" placeholder="e.g. hello" />
+          </div>
+          <div class="form-row">
+            <div class="form-label">Response Index (number)</div>
+            <input type="text" id="removeIndex" placeholder="e.g. 1" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-danger" onclick="removeBot()">🗑️ Remove</button>
+          <button class="btn btn-secondary" onclick="clearFields('remove')">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── LIST ── -->
+    <div id="panel-list" class="panel">
+      <div class="panel-title">📋 Trigger List</div>
+      <div class="card">
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="loadList()">🔄 Load List</button>
+        </div>
+      </div>
+      <div id="listContainer" class="list-container" style="display:none"></div>
+    </div>
+
+    <!-- ── SEARCH ── -->
+    <div id="panel-search" class="panel">
+      <div class="panel-title">🔍 Search Trigger</div>
+      <div class="card">
+        <div class="form-row">
+          <div class="form-label">Search for a message</div>
+          <div style="display:flex;gap:10px">
+            <input type="text" id="searchInput" placeholder="Type a trigger to look up…" onkeydown="if(event.key==='Enter') searchBot()" />
+            <button class="btn btn-primary" onclick="searchBot()">Search</button>
+          </div>
+        </div>
+      </div>
+      <div class="card" id="searchResult" style="display:none">
+        <div class="card-label">Result</div>
+        <div id="searchResultText" style="font-size:14px;line-height:1.7"></div>
+      </div>
+    </div>
+
+    <!-- ── LEADERBOARD ── -->
+    <div id="panel-leaderboard" class="panel">
+      <div class="panel-title">👑 Top Teachers</div>
+      <div class="card">
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="loadLeaderboard()">🔄 Load Teachers</button>
+        </div>
+      </div>
+      <div id="leaderboardContainer" class="list-container" style="display:none"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+  const BASE = window.location.origin;
+
+  // ── API base ──
+  async function getBase() {
+    try {
+      const r = await fetch('https://raw.githubusercontent.com/oldacountrocky303-ship-it/baby-api/main/baseApiUrl.json');
+      const d = await r.json();
+      return d.rocky;
+    } catch {
+      return BASE;
+    }
+  }
+
+  // ── Status check ──
+  async function checkStatus() {
+    try {
+      const base = await getBase();
+      await fetch(`${base}/api/jan/list`);
+      document.getElementById('statusDot').style.background = 'var(--success)';
+      document.getElementById('statusDot').style.boxShadow = '0 0 8px var(--success)';
+      document.getElementById('statusText').textContent = 'Online';
+    } catch {
+      document.getElementById('statusDot').style.background = 'var(--error)';
+      document.getElementById('statusDot').style.boxShadow = '0 0 8px var(--error)';
+      document.getElementById('statusText').textContent = 'Offline';
+    }
+  }
+  checkStatus();
+
+  // ── Panel switch ──
+  function switchPanel(id, btn) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-' + id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  // ── Toast ──
+  let toastTimer;
+  function toast(msg, type='success') {
+    const t = document.getElementById('toast');
+    t.innerHTML = `<span>${type==='success'?'✅':'❌'}</span> ${msg}`;
+    t.className = 'show ' + type;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.className = '', 3500);
+  }
+
+  // ── Time ──
+  function now() {
+    return new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  }
+
+  // ── Chat ──
+  function appendMsg(text, role) {
+    const box = document.getElementById('chatMessages');
+    const isUser = role === 'user';
+    const div = document.createElement('div');
+    div.className = 'msg ' + role;
+    div.innerHTML = `
+      ${isUser ? '' : '<div class="avatar">🌸</div>'}
+      <div>
+        <div class="bubble">${text}</div>
+        <div class="msg-time">${now()}</div>
+      </div>
+      ${isUser ? '<div class="avatar">🧑</div>' : ''}
+    `;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function appendTyping() {
+    const box = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = 'msg bot';
+    div.id = 'typing';
+    div.innerHTML = `<div class="avatar">🌸</div><div><div class="bubble" style="color:var(--muted);font-style:italic">typing…</div></div>`;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+  }
+  function removeTyping() {
+    const t = document.getElementById('typing');
+    if (t) t.remove();
+  }
+
+  async function sendChat() {
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    appendMsg(text, 'user');
+    appendTyping();
+    const btn = document.getElementById('chatBtn');
+    btn.disabled = true;
+    try {
+      const base = await getBase();
+      const res = await fetch(`${base}/api/hinata`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({text, style: 3, attachments: []})
+      });
+      const data = await res.json();
+      removeTyping();
+      appendMsg(data.message || 'Error baby 🥹', 'bot');
+    } catch {
+      removeTyping();
+      appendMsg('Server e problem ache 😓', 'bot');
+    }
+    btn.disabled = false;
+    input.focus();
+  }
+
+  // ── Teach ──
+  async function teachBot() {
+    const trigger = document.getElementById('teachTrigger').value.trim();
+    const responses = document.getElementById('teachResponses').value.trim();
+    if (!trigger || !responses) return toast('Trigger & responses lagbe!', 'error');
+    try {
+      const base = await getBase();
+      const res = await fetch(`${base}/api/jan/teach`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({trigger, responses, userID: 'web-dashboard'})
+      });
+      const data = await res.json();
+      toast(`"${trigger}" added ✅`);
+      const box = document.getElementById('teachResult');
+      box.style.display = 'block';
+      document.getElementById('teachResultText').innerHTML =
+        `<b>Trigger:</b> ${trigger}<br><b>Responses:</b> ${responses}<br><b>Total replies:</b> ${data.count || '—'}`;
+    } catch(e) {
+      toast('Error: ' + e.message, 'error');
+    }
+  }
+
+  // ── Edit ──
+  async function editBot() {
+    const oldTrigger = document.getElementById('editOld').value.trim();
+    const newResponse = document.getElementById('editNew').value.trim();
+    if (!oldTrigger || !newResponse) return toast('Both fields lagbe!', 'error');
+    try {
+      const base = await getBase();
+      await fetch(`${base}/api/jan/edit`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({oldTrigger, newResponse})
+      });
+      toast(`"${oldTrigger}" edited ✅`);
+    } catch(e) {
+      toast('Error: ' + e.message, 'error');
+    }
+  }
+
+  // ── Remove ──
+  async function removeBot() {
+    const trigger = document.getElementById('removeTrigger').value.trim();
+    const index = parseInt(document.getElementById('removeIndex').value.trim());
+    if (!trigger || isNaN(index)) return toast('Trigger & valid index lagbe!', 'error');
+    try {
+      const base = await getBase();
+      const res = await fetch(`${base}/api/jan/remove`, {
+        method: 'DELETE',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({trigger, index})
+      });
+      const data = await res.json();
+      toast(data.message || 'Removed ✅');
+    } catch(e) {
+      toast('Error: ' + e.message, 'error');
+    }
+  }
+
+  // ── List ──
+  async function loadList() {
+    const container = document.getElementById('listContainer');
+    container.style.display = 'flex';
+    container.innerHTML = '<div style="color:var(--muted);font-size:14px">Loading… <span class="spinner"></span></div>';
+    try {
+      const base = await getBase();
+      const res = await fetch(`${base}/api/jan/list`);
+      const data = await res.json();
+      const msg = data.message || '';
+      const lines = msg.split('\n').filter(Boolean);
+      if (!lines.length) {
+        container.innerHTML = '<div class="card" style="color:var(--muted);text-align:center">No triggers found.</div>';
+        return;
+      }
+      container.innerHTML = lines.map(line => `
+        <div class="list-item">
+          <div class="list-trigger">${line}</div>
+        </div>
+      `).join('');
+    } catch(e) {
+      container.innerHTML = `<div class="card" style="color:var(--error)">${e.message}</div>`;
+    }
+  }
+
+  // ── Search ──
+  async function searchBot() {
+    const q = document.getElementById('searchInput').value.trim();
+    if (!q) return toast('Kisu likhte hobe!', 'error');
+    const box = document.getElementById('searchResult');
+    const txt = document.getElementById('searchResultText');
+    box.style.display = 'block';
+    txt.innerHTML = '<span class="spinner"></span> Searching…';
+    try {
+      const base = await getBase();
+      const res = await fetch(`${base}/api/jan/msg?userMessage=msg+${encodeURIComponent(q)}`);
+      const data = await res.json();
+      txt.innerHTML = data.message || 'Kono result nai.';
+    } catch(e) {
+      txt.innerHTML = `<span style="color:var(--error)">${e.message}</span>`;
+    }
+  }
+
+  // ── Leaderboard ──
+  async function loadLeaderboard() {
+    const container = document.getElementById('leaderboardContainer');
+    container.style.display = 'flex';
+    container.innerHTML = '<div style="color:var(--muted);font-size:14px">Loading… <span class="spinner"></span></div>';
+    try {
+      const base = await getBase();
+      const res = await fetch(`${base}/api/jan/list/all`);
+      const data = await res.json();
+      const entries = Object.entries(data.data || {})
+        .sort((a,b) => b[1]-a[1]).slice(0,20);
+      if (!entries.length) {
+        container.innerHTML = '<div class="card" style="color:var(--muted);text-align:center">No data yet.</div>';
+        return;
+      }
+      const medals = ['🥇','🥈','🥉'];
+      container.innerHTML = entries.map(([uid, count], i) => `
+        <div class="list-item">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-size:20px">${medals[i] || (i+1+'.')}</span>
+            <div>
+              <div class="list-trigger" style="font-family:var(--mono);font-size:13px">${uid}</div>
+              <div class="list-count">${count} teachings</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    } catch(e) {
+      container.innerHTML = `<div class="card" style="color:var(--error)">${e.message}</div>`;
+    }
+  }
+
+  // ── Clear ──
+  function clearFields(section) {
+    if(section==='teach') { document.getElementById('teachTrigger').value=''; document.getElementById('teachResponses').value=''; document.getElementById('teachResult').style.display='none'; }
+    if(section==='edit') { document.getElementById('editOld').value=''; document.getElementById('editNew').value=''; }
+    if(section==='remove') { document.getElementById('removeTrigger').value=''; document.getElementById('removeIndex').value=''; }
+  }
+</script>
+</body>
+</html>
