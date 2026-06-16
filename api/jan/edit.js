@@ -1,16 +1,16 @@
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const GITHUB_REPO = process.env.GITHUB_REPO || "rocky-chowdhury-api/baby-api";
+const GITHUB_REPO = "oldacountrocky303-ship-it/baby-api";
 const FILE_PATH = "data/responses.json";
 
-const BLOCKED_WORDS = [
+const BLOCKED = [
   "sex","sexy","nude","naked","porn","xxx","boobs","dick","pussy","fuck",
-  "choda","chudi","magi","beshya","randi","হাগা","চোদা","চুদি","মাগি",
-  "বেশ্যা","রান্ডি","নুড","সেক্স","পর্ন","নগ্ন","যৌন","অশ্লীল","rape","ধর্ষণ"
+  "choda","chudi","magi","beshya","randi","rape",
+  "হাগা","চোদা","চুদি","মাগি","বেশ্যা","রান্ডি","নুড",
+  "সেক্স","পর্ন","নগ্ন","যৌন","অশ্লীল","ধর্ষণ"
 ];
 
 function isBlocked(text) {
-  const lower = text.toLowerCase();
-  return BLOCKED_WORDS.some(w => lower.includes(w));
+  return BLOCKED.some(w => text.toLowerCase().includes(w));
 }
 
 async function getFile() {
@@ -19,10 +19,7 @@ async function getFile() {
     headers: { Authorization: `token ${GITHUB_TOKEN}` }
   });
   const data = await res.json();
-  return {
-    content: JSON.parse(Buffer.from(data.content, 'base64').toString('utf8')),
-    sha: data.sha
-  };
+  return { content: JSON.parse(Buffer.from(data.content, 'base64').toString('utf8')), sha: data.sha };
 }
 
 async function saveFile(content, sha) {
