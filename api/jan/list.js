@@ -1,5 +1,5 @@
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const GITHUB_REPO = process.env.GITHUB_REPO || "rocky-chowdhury-api/baby-api";
+const GITHUB_REPO = "oldacountrocky303-ship-it/baby-api";
 
 async function getFile(path) {
   const { default: fetch } = await import('node-fetch');
@@ -23,7 +23,6 @@ module.exports = async (req, res) => {
       const teachers = await getFile("data/teachers.json");
       return res.status(200).json({ data: teachers });
     }
-
     const responses = await getFile("data/responses.json");
     const keys = Object.keys(responses);
     let msg = `📚 Total taught: ${keys.length} triggers\n\n`;
