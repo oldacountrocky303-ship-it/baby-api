@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Baby 🌸 — Rocky's AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800;900&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:#0d0a14; --surface:#150f20; --card:#1c1429; --border:#2e1f45;
+  --accent:#d670f0; --accent2:#f070b8; --accent3:#9b70f0;
+  --pink:#ff85c2; --lav:#c9a0f5; --text:#f0e6ff; --muted:#8870aa;
+  --ok:#7ef0b8; --err:#f87171; --r:18px;
+  --font:'Nunito',sans-serif; --fancy:'Dancing Script',cursive;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden}
+
+/* ═══ BACKGROUND CANVAS ═══ */
+#bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:hidden}
+
+/* glow orbs */
+.orb{position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none;animation:orbPulse 7s ease-in-out infinite}
+.o1{width:500px;height:500px;background:rgba(214,112,240,.22);top:-150px;left:-150px;animation-delay:0s}
+.o2{width:400px;height:400px;background:rgba(240,112,184,.18);bottom:-100px;right:-80px;animation-delay:3.5s}
+.o3{width:300px;height:300px;background:rgba(155,112,240,.15);top:45%;left:45%;animation-delay:1.8s}
+@keyframes orbPulse{0%,100%{transform:scale(1);opacity:.8}50%{transform:scale(1.18);opacity:1}}
+
+/* flowers */
+.fl{position:absolute;bottom:-80px;font-size:20px;user-select:none;pointer-events:none;will-change:transform,opacity;animation:rise linear forwards}
+@keyframes rise{
+  0%  {transform:translateX(0) rotate(0deg) scale(.5);opacity:0}
+  6%  {opacity:1}
+  50% {transform:translateX(var(--sx)) rotate(180deg) scale(1)}
+  94% {opacity:.8}
+  100%{transform:translateX(var(--ex)) rotate(360deg) scale(.7);opacity:0;bottom:105vh}
+}
+
+/* ═══ HEADER ═══ */
+header,nav,.layout,main,#toast{position:relative;z-index:2}
+header{
+  padding:12px 26px;border-bottom:1px solid rgba(200,140,255,.13);
+  display:flex;align-items:center;gap:14px;
+  background:rgba(13,10,20,.82);backdrop-filter:blur(22px);
+  -webkit-backdrop-filter:blur(22px);
+}
+.av-wrap{position:relative;flex-shrink:0}
+.av-ring{
+  width:52px;height:52px;border-radius:50%;padding:2.5px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2),var(--accent3));
+  animation:ringGlow 3s ease-in-out infinite;
+  box-shadow:0 0 22px rgba(214,112,240,.55),0 0 50px rgba(214,112,240,.2);
+}
+@keyframes ringGlow{
+  0%,100%{box-shadow:0 0 22px rgba(214,112,240,.55),0 0 50px rgba(214,112,240,.2)}
+  50%{box-shadow:0 0 35px rgba(240,112,184,.75),0 0 70px rgba(240,112,184,.3)}
+}
+.av-ring img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;background:var(--surface)}
+.av-dot{
+  position:absolute;bottom:2px;right:2px;width:13px;height:13px;border-radius:50%;
+  background:var(--ok);border:2.5px solid var(--bg);
+  box-shadow:0 0 9px var(--ok);animation:dotBeat 1.8s ease-in-out infinite;
+}
+@keyframes dotBeat{0%,100%{transform:scale(1)}50%{transform:scale(.75)}}
+.hinfo h1{font-family:var(--fancy);font-size:22px;font-weight:700;background:linear-gradient(135deg,var(--pink),var(--lav),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.2}
+.hinfo small{font-size:12px;color:var(--muted);font-weight:500}
+.hright{margin-left:auto;display:flex;align-items:center;gap:10px}
+.spill{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);background:rgba(255,255,255,.04);border:1px solid var(--border);padding:6px 14px;border-radius:30px;font-weight:600}
+.sd{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok);animation:dotBeat 1.8s ease-in-out infinite}
+
+/* ═══ LAYOUT ═══ */
+.layout{display:flex;flex:1;overflow:hidden}
+
+/* ═══ NAV ═══ */
+nav{
+  width:206px;flex-shrink:0;
+  background:rgba(13,10,20,.75);backdrop-filter:blur(18px);
+  border-right:1px solid rgba(200,140,255,.09);
+  padding:18px 11px;display:flex;flex-direction:column;gap:2px;
+}
+.nl{font-size:10px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted);padding:8px 13px 3px;margin-top:4px}
+nav button{
+  width:100%;background:none;border:none;color:var(--muted);
+  font-family:var(--font);font-size:13.5px;font-weight:700;
+  padding:10px 13px;border-radius:12px;cursor:pointer;
+  text-align:left;display:flex;align-items:center;gap:10px;transition:all .18s;
+}
+nav button:hover{background:rgba(214,112,240,.1);color:var(--text)}
+nav button.on{
+  background:linear-gradient(135deg,rgba(214,112,240,.22),rgba(240,112,184,.13));
+  color:var(--lav);border:1px solid rgba(214,112,240,.32);
+  box-shadow:inset 0 0 18px rgba(214,112,240,.07);
+}
+.ni{font-size:16px;width:20px;text-align:center}
+
+/* ═══ MAIN ═══ */
+main{flex:1;overflow-y:auto;padding:26px;display:flex;flex-direction:column;gap:20px}
+main::-webkit-scrollbar{width:4px}
+main::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+.panel{display:none}
+.panel.on{display:flex;flex-direction:column;gap:18px}
+
+.ptitle{font-family:var(--fancy);font-size:27px;font-weight:700;background:linear-gradient(135deg,var(--pink),var(--lav));-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:flex;align-items:center;gap:10px}
+.bdg{font-family:var(--font);font-size:11px;font-weight:800;letter-spacing:.4px;padding:3px 11px;border-radius:20px;background:rgba(214,112,240,.14);-webkit-text-fill-color:var(--lav);border:1px solid rgba(214,112,240,.3)}
+
+/* ═══ CARD ═══ */
+.card{background:rgba(28,20,41,.78);backdrop-filter:blur(14px);border:1px solid rgba(200,140,255,.12);border-radius:var(--r);padding:22px;transition:border-color .25s}
+.card:hover{border-color:rgba(214,112,240,.28)}
+.clbl{font-size:11px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);margin-bottom:13px}
+
+/* ═══ CHAT ═══ */
+.cmsg{height:360px;overflow-y:auto;display:flex;flex-direction:column;gap:13px;padding:3px 0;scroll-behavior:smooth}
+.cmsg::-webkit-scrollbar{width:3px}
+.cmsg::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+.msg{display:flex;gap:9px;align-items:flex-end;animation:fup .22s ease}
+@keyframes fup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.msg.u{flex-direction:row-reverse}
+
+.mav{width:36px;height:36px;border-radius:50%;flex-shrink:0;overflow:hidden;border:2px solid transparent}
+.msg.b .mav{background:linear-gradient(var(--card),var(--card)) padding-box,linear-gradient(135deg,var(--accent),var(--accent2)) border-box}
+.msg.b .mav img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+.msg.u .mav{background:linear-gradient(135deg,var(--accent3),var(--accent));display:flex;align-items:center;justify-content:center;font-size:17px}
+
+.bbl{max-width:72%;padding:11px 16px;border-radius:18px;font-size:14px;line-height:1.65}
+.msg.b .bbl{background:rgba(28,20,41,.92);border:1px solid rgba(200,140,255,.15);border-bottom-left-radius:5px}
+.msg.u .bbl{background:linear-gradient(135deg,rgba(214,112,240,.3),rgba(240,112,184,.2));border:1px solid rgba(214,112,240,.38);border-bottom-right-radius:5px}
+.mt{font-size:10px;color:var(--muted);margin-top:5px}
+
+.cir{display:flex;gap:10px;margin-top:15px}
+
+/* ═══ INPUTS ═══ */
+input[type=text],textarea{
+  background:rgba(21,15,32,.85);border:1.5px solid var(--border);
+  border-radius:12px;color:var(--text);font-family:var(--font);font-size:14px;
+  padding:12px 16px;outline:none;transition:border-color .2s,box-shadow .2s;width:100%;
+}
+input[type=text]:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(214,112,240,.13)}
+input::placeholder,textarea::placeholder{color:var(--muted)}
+textarea{resize:vertical;min-height:82px}
+
+/* ═══ BUTTONS ═══ */
+.btn{border:none;border-radius:12px;font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer;padding:12px 20px;transition:all .2s;display:flex;align-items:center;gap:7px;white-space:nowrap}
+.bp{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 22px rgba(214,112,240,.38)}
+.bp:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(214,112,240,.55)}
+.bs{background:rgba(255,255,255,.05);color:var(--text);border:1px solid var(--border)}
+.bs:hover{border-color:var(--accent);color:var(--lav)}
+.bd{background:rgba(248,113,113,.1);color:var(--err);border:1px solid rgba(248,113,113,.25)}
+.bd:hover{background:rgba(248,113,113,.2);transform:translateY(-1px)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+
+/* ═══ FORM ═══ */
+.fr{display:flex;flex-direction:column;gap:8px}
+.fl2{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.3px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fa{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+
+/* ═══ LIST ═══ */
+.li{background:rgba(28,20,41,.65);border:1px solid rgba(200,140,255,.1);border-radius:12px;padding:13px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;animation:fup .2s ease;transition:border-color .2s,transform .2s}
+.li:hover{border-color:rgba(214,112,240,.32);transform:translateX(4px)}
+.lc{display:flex;flex-direction:column;gap:8px}
+
+/* ═══ TOAST ═══ */
+#toast{position:fixed;bottom:24px;right:24px;background:rgba(28,20,41,.97);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:14px;padding:14px 20px;font-size:14px;font-weight:700;display:flex;align-items:center;gap:10px;box-shadow:0 8px 40px rgba(0,0,0,.55);transform:translateY(90px);opacity:0;transition:all .35s cubic-bezier(.34,1.56,.64,1);z-index:999;max-width:320px}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.ok{border-color:rgba(126,240,184,.4)}
+#toast.er{border-color:rgba(248,113,113,.4)}
+
+/* ═══ SPINNER ═══ */
+.sp{width:18px;height:18px;border:2.5px solid rgba(214,112,240,.2);border-top-color:var(--accent);border-radius:50%;animation:spin .65s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:700px){
+  .layout{flex-direction:column}
+  nav{width:100%;flex-direction:row;overflow-x:auto;padding:8px;border-right:none;border-bottom:1px solid rgba(200,140,255,.09);gap:3px}
+  nav button{flex-direction:column;gap:2px;padding:7px 9px;font-size:10px;min-width:58px}
+  .nl{display:none}
+  main{padding:14px}
+  .fg{grid-template-columns:1fr}
+  .ptitle{font-size:22px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ BACKGROUND ═══ -->
+<div id="bg">
+  <div class="orb o1"></div>
+  <div class="orb o2"></div>
+  <div class="orb o3"></div>
+</div>
+
+<!-- ═══ HEADER ═══ -->
+<header>
+  <div class="av-wrap">
+    <div class="av-ring">
+      <img id="headerPic" src="https://i.imgur.com/pFj02TT.jpeg" alt="Baby"/>
+    </div>
+    <div class="av-dot"></div>
+  </div>
+  <div class="hinfo">
+    <h1>Baby 🌸</h1>
+    <small>Rocky's AI Girlfriend ✨</small>
+  </div>
+  <div class="hright">
+    <div class="spill">
+      <div class="sd" id="sd"></div>
+      <span id="st">Connecting…</span>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- ═══ NAV ═══ -->
+  <nav>
+    <div class="nl">Main</div>
+    <button class="on" onclick="go('chat',this)"><span class="ni">💬</span> Chat</button>
+    <div class="nl">Manage</div>
+    <button onclick="go('teach',this)"><span class="ni">📚</span> Teach</button>
+    <button onclick="go('edit',this)"><span class="ni">✏️</span> Edit</button>
+    <button onclick="go('remove',this)"><span class="ni">🗑️</span> Remove</button>
+    <div class="nl">Explore</div>
+    <button onclick="go('list',this)"><span class="ni">📋</span> List</button>
+    <button onclick="go('search',this)"><span class="ni">🔍</span> Search</button>
+    <button onclick="go('board',this)"><span class="ni">👑</span> Teachers</button>
+  </nav>
+
+  <!-- ═══ MAIN ═══ -->
+  <main>
+
+    <!-- CHAT -->
+    <div id="p-chat" class="panel on">
+      <div class="ptitle">💬 Chat <span class="bdg">Live</span></div>
+      <div class="card">
+        <div class="cmsg" id="cmsg">
+          <div class="msg b">
+            <div class="mav"><img src="https://i.imgur.com/pFj02TT.jpeg" alt="🌸" onerror="this.outerHTML='🌸'"/></div>
+            <div>
+              <div class="bbl">Assalamualaikum! Bolo ki bolba? 😊🌸</div>
+              <div class="mt">Baby • just now</div>
+            </div>
+          </div>
+        </div>
+        <div class="cir">
+          <input type="text" id="ci" placeholder="Kicu bolo… 💬" onkeydown="if(event.key==='Enter')sc()"/>
+          <button class="btn bp" onclick="sc()" id="cb">Send 🌸</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEACH -->
+    <div id="p-teach" class="panel">
+      <div class="ptitle">📚 Teach Baby</div>
+      <div class="card">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:18px">Baby ke notun kisu shikhao 🌸 Multiple responses comma diye dao.</p>
+        <div class="fg">
+          <div class="fr"><div class="fl2">Trigger / Question</div><input type="text" id="ttr" placeholder="e.g. hello, kemon acho"/></div>
+          <div class="fr"><div class="fl2">Responses (comma separated)</div><input type="text" id="tre" placeholder="e.g. Hi!, Valo achi 😊"/></div>
+        </div>
+        <div class="fa">
+          <button class="btn bp" onclick="doTeach()">📚 Add Teaching</button>
+          <button class="btn bs" onclick="clr('teach')">Clear</button>
+        </div>
+      </div>
+      <div class="card" id="tr" style="display:none"><div class="clbl">Result ✅</div><div id="trt" style="font-size:14px;line-height:1.8"></div></div>
+    </div>
+
+    <!-- EDIT -->
+    <div id="p-edit" class="panel">
+      <div class="ptitle">✏️ Edit Trigger</div>
+      <div class="card">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:18px">Existing trigger er response change koro 💜</p>
+        <div class="fg">
+          <div class="fr"><div class="fl2">Existing Trigger</div><input type="text" id="eo" placeholder="e.g. hello"/></div>
+          <div class="fr"><div class="fl2">New Response</div><input type="text" id="en" placeholder="e.g. Hey there! 😘"/></div>
+        </div>
+        <div class="fa">
+          <button class="btn bp" onclick="doEdit()">✏️ Save Edit</button>
+          <button class="btn bs" onclick="clr('edit')">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- REMOVE -->
+    <div id="p-remove" class="panel">
+      <div class="ptitle">🗑️ Remove Response</div>
+      <div class="card">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:18px">Kono specific response remove koro index number diye.</p>
+        <div class="fg">
+          <div class="fr"><div class="fl2">Trigger</div><input type="text" id="rt" placeholder="e.g. hello"/></div>
+          <div class="fr"><div class="fl2">Index Number</div><input type="text" id="ri" placeholder="e.g. 1"/></div>
+        </div>
+        <div class="fa">
+          <button class="btn bd" onclick="doRemove()">🗑️ Remove</button>
+          <button class="btn bs" onclick="clr('remove')">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIST -->
+    <div id="p-list" class="panel">
+      <div class="ptitle">📋 Trigger List</div>
+      <div class="card"><div class="fa"><button class="btn bp" onclick="loadList()">🔄 Load All Triggers</button></div></div>
+      <div id="lc" class="lc" style="display:none"></div>
+    </div>
+
+    <!-- SEARCH -->
+    <div id="p-search" class="panel">
+      <div class="ptitle">🔍 Search</div>
+      <div class="card">
+        <div class="fr">
+          <div class="fl2">Search a trigger message</div>
+          <div style="display:flex;gap:10px">
+            <input type="text" id="si" placeholder="Type trigger to search…" onkeydown="if(event.key==='Enter')doSearch()"/>
+            <button class="btn bp" onclick="doSearch()">Search</button>
+          </div>
+        </div>
+      </div>
+      <div class="card" id="sr" style="display:none"><div class="clbl">Result</div><div id="srt" style="font-size:14px;line-height:1.8"></div></div>
+    </div>
+
+    <!-- BOARD -->
+    <div id="p-board" class="panel">
+      <div class="ptitle">👑 Top Teachers</div>
+      <div class="card"><div class="fa"><button class="btn bp" onclick="loadBoard()">🔄 Load Teachers</button></div></div>
+      <div id="bc" class="lc" style="display:none"></div>
+    </div>
+
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════
+//  FLOWER ANIMATION
+// ══════════════════════════════════════
+const EMOJIS = ['🌸','🌺','🌷','🌼','💐','🌹','🪷','🏵️','🌻','💮','✨','🫧','🦋','🌟'];
+const bgEl = document.getElementById('bg');
+
+function bloom() {
+  const e = document.createElement('span');
+  e.className = 'fl';
+  e.textContent = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+
+  const size = 14 + Math.random() * 22;
+  const startX = Math.random() * 96; // vw
+  const dur = 6 + Math.random() * 11;
+  const swayX = (Math.random() - 0.5) * 120;
+  const endX = swayX * 1.4;
+
+  e.style.cssText = `
+    font-size:${size}px;
+    left:${startX}vw;
+    --sx:${swayX}px;
+    --ex:${endX}px;
+    animation-duration:${dur}s;
+    animation-delay:${Math.random() * 1.5}s;
+  `;
+
+  bgEl.appendChild(e);
+  setTimeout(() => e.remove(), (dur + 2) * 1000);
+}
+
+// Initial burst
+for (let i = 0; i < 25; i++) setTimeout(bloom, i * 80);
+// Continuous spawn
+setInterval(bloom, 400);
+
+// ══════════════════════════════════════
+//  API — hardcoded base URL (no CORS issue)
+// ══════════════════════════════════════
+const BASE_URL = 'https://baby-api-five.vercel.app';
+async function base() { return BASE_URL; }
+
+// Status check
+(async () => {
+  try {
+    const b = await base();
+    const r = await fetch(b + '/api/jan/list');
+    if (r.status < 500) {
+      document.getElementById('sd').style.cssText = 'background:var(--ok);box-shadow:0 0 9px var(--ok)';
+      document.getElementById('st').textContent = 'Online ✨';
+      return;
+    }
+  } catch {}
+  document.getElementById('sd').style.cssText = 'background:var(--err);box-shadow:0 0 9px var(--err)';
+  document.getElementById('st').textContent = 'Offline';
+})();
+
+// ══════════════════════════════════════
+//  NAV
+// ══════════════════════════════════════
+function go(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('on'));
+  document.getElementById('p-' + id).classList.add('on');
+  btn.classList.add('on');
+}
+
+// ══════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════
+let tt;
+function toast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  t.innerHTML = (type==='ok' ? '✅ ' : '❌ ') + msg;
+  t.className = 'show ' + type;
+  clearTimeout(tt);
+  tt = setTimeout(() => t.className = '', 3600);
+}
+
+function nt() { return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
+
+// ══════════════════════════════════════
+//  CHAT
+// ══════════════════════════════════════
+const PIC = 'https://i.imgur.com/pFj02TT.jpeg';
+
+function addMsg(text, who) {
+  const box = document.getElementById('cmsg');
+  const d = document.createElement('div');
+  d.className = 'msg ' + who;
+  if (who === 'b') {
+    d.innerHTML = `<div class="mav"><img src="${PIC}" alt="🌸" onerror="this.outerHTML='🌸'"/></div>
+      <div><div class="bbl">${text}</div><div class="mt">Baby • ${nt()}</div></div>`;
+  } else {
+    d.innerHTML = `<div><div class="bbl">${text}</div><div class="mt" style="text-align:right">You • ${nt()}</div></div>
+      <div class="mav" style="font-size:18px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent3),var(--accent))">🧑</div>`;
+  }
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+}
+
+function addTyping() {
+  const box = document.getElementById('cmsg');
+  const d = document.createElement('div');
+  d.className = 'msg b'; d.id = 'typing';
+  d.innerHTML = `<div class="mav"><img src="${PIC}" alt="🌸" onerror="this.outerHTML='🌸'"/></div>
+    <div><div class="bbl" style="color:var(--muted);font-style:italic;letter-spacing:2px">• • •</div></div>`;
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+}
+function rmTyping() { const e = document.getElementById('typing'); if(e) e.remove(); }
+
+async function sc() {
+  const inp = document.getElementById('ci');
+  const txt = inp.value.trim();
+  if (!txt) return;
+  inp.value = '';
+  addMsg(txt, 'u');
+  addTyping();
+  document.getElementById('cb').disabled = true;
+  try {
+    const b = await base();
+    const r = await fetch(b + '/api/hinata', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({text: txt, style:3, attachments:[]})
+    });
+    const data = await r.json();
+    rmTyping();
+    addMsg(data.message || 'Error baby 🥹', 'b');
+  } catch {
+    rmTyping();
+    addMsg('Server e problem ache 😓 Try again!', 'b');
+  }
+  document.getElementById('cb').disabled = false;
+  inp.focus();
+}
+
+// ══════════════════════════════════════
+//  TEACH
+// ══════════════════════════════════════
+async function doTeach() {
+  const trigger = document.getElementById('ttr').value.trim();
+  const responses = document.getElementById('tre').value.trim();
+  if (!trigger || !responses) return toast('Trigger & responses lagbe!','er');
+  try {
+    const b = await base();
+    const r = await fetch(b + '/api/jan/teach', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({trigger, responses, userID:'web-dashboard'})
+    });
+    const d = await r.json();
+    toast(`"${trigger}" add hoyeche ✅`);
+    document.getElementById('tr').style.display = 'block';
+    document.getElementById('trt').innerHTML =
+      `🌸 <b>Trigger:</b> ${trigger}<br>💬 <b>Responses:</b> ${responses}<br>📊 <b>Total:</b> ${d.count||'—'}`;
+  } catch(e) { toast('Error: '+e.message,'er'); }
+}
+
+// ══════════════════════════════════════
+//  EDIT
+// ══════════════════════════════════════
+async function doEdit() {
+  const oldTrigger = document.getElementById('eo').value.trim();
+  const newResponse = document.getElementById('en').value.trim();
+  if (!oldTrigger || !newResponse) return toast('Both fields lagbe!','er');
+  try {
+    const b = await base();
+    await fetch(b + '/api/jan/edit', {
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({oldTrigger, newResponse})
+    });
+    toast(`"${oldTrigger}" edit hoyeche ✅`);
+    clr('edit');
+  } catch(e) { toast('Error: '+e.message,'er'); }
+}
+
+// ══════════════════════════════════════
+//  REMOVE
+// ══════════════════════════════════════
+async function doRemove() {
+  const trigger = document.getElementById('rt').value.trim();
+  const index = parseInt(document.getElementById('ri').value.trim());
+  if (!trigger || isNaN(index)) return toast('Trigger & valid index lagbe!','er');
+  try {
+    const b = await base();
+    const r = await fetch(b + '/api/jan/remove', {
+      method:'DELETE', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({trigger, index})
+    });
+    const d = await r.json();
+    toast(d.message || 'Removed ✅');
+    clr('remove');
+  } catch(e) { toast('Error: '+e.message,'er'); }
+}
+
+// ══════════════════════════════════════
+//  LIST
+// ══════════════════════════════════════
+async function loadList() {
+  const c = document.getElementById('lc');
+  c.style.display = 'flex';
+  c.innerHTML = '<div style="color:var(--muted);display:flex;align-items:center;gap:9px"><span class="sp"></span> Loading…</div>';
+  try {
+    const b = await base();
+    const r = await fetch(b + '/api/jan/list');
+    const d = await r.json();
+    const lines = (d.message||'').split('\n').filter(Boolean);
+    c.innerHTML = lines.length
+      ? lines.map(l=>`<div class="li"><span>🌸 ${l}</span></div>`).join('')
+      : '<div class="card" style="color:var(--muted);text-align:center">Kono trigger nai abhi 🌸</div>';
+  } catch(e) { c.innerHTML = `<div class="card" style="color:var(--err)">${e.message}</div>`; }
+}
+
+// ══════════════════════════════════════
+//  SEARCH
+// ══════════════════════════════════════
+async function doSearch() {
+  const q = document.getElementById('si').value.trim();
+  if (!q) return toast('Kisu likhte hobe!','er');
+  const sr = document.getElementById('sr');
+  const srt = document.getElementById('srt');
+  sr.style.display = 'block';
+  srt.innerHTML = '<span class="sp"></span> Searching…';
+  try {
+    const b = await base();
+    const r = await fetch(b + '/api/jan/msg?userMessage=msg+' + encodeURIComponent(q));
+    const d = await r.json();
+    srt.innerHTML = d.message || 'Kono result nai 🌸';
+  } catch(e) { srt.innerHTML = `<span style="color:var(--err)">${e.message}</span>`; }
+}
+
+// ══════════════════════════════════════
+//  LEADERBOARD
+// ══════════════════════════════════════
+async function loadBoard() {
+  const c = document.getElementById('bc');
+  c.style.display = 'flex';
+  c.innerHTML = '<div style="color:var(--muted);display:flex;align-items:center;gap:9px"><span class="sp"></span> Loading…</div>';
+  try {
+    const b = await base();
+    const r = await fetch(b + '/api/jan/list/all');
+    const d = await r.json();
+    const entries = Object.entries(d.data||{}).sort((a,b2)=>b2[1]-a[1]).slice(0,20);
+    if (!entries.length) { c.innerHTML='<div class="card" style="color:var(--muted);text-align:center">Data nai abhi 🌸</div>'; return; }
+    const m = ['🥇','🥈','🥉'];
+    c.innerHTML = entries.map(([uid,cnt],i)=>`
+      <div class="li">
+        <div style="display:flex;align-items:center;gap:14px">
+          <span style="font-size:22px">${m[i]||'✨'}</span>
+          <div>
+            <div style="font-weight:800;font-size:13px;font-family:monospace">${uid}</div>
+            <div style="font-size:12px;color:var(--muted)">${cnt} teachings 📚</div>
+          </div>
+        </div>
+      </div>`).join('');
+  } catch(e) { c.innerHTML=`<div class="card" style="color:var(--err)">${e.message}</div>`; }
+}
+
+// ══════════════════════════════════════
+//  CLEAR
+// ══════════════════════════════════════
+function clr(s) {
+  if(s==='teach'){document.getElementById('ttr').value='';document.getElementById('tre').value='';document.getElementById('tr').style.display='none';}
+  if(s==='edit'){document.getElementById('eo').value='';document.getElementById('en').value='';}
+  if(s==='remove'){document.getElementById('rt').value='';document.getElementById('ri').value='';}
+}
+</script>
+</body>
+  </html>
